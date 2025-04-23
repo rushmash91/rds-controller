@@ -112,10 +112,17 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Status.ActivityStreamStatus = nil
 		}
-		if elem.AllocatedStorage != nil {
-			allocatedStorageCopy := int64(*elem.AllocatedStorage)
-			ko.Spec.AllocatedStorage = &allocatedStorageCopy
+		// Only copy AllocatedStorage to spec if it's NOT an Aurora engine,
+		// as it's not a user-configurable parameter for Aurora.
+		if !isAuroraEngine(ko.Spec.Engine) {
+			if elem.AllocatedStorage != nil {
+				allocatedStorageCopy := int64(*elem.AllocatedStorage)
+				ko.Spec.AllocatedStorage = &allocatedStorageCopy
+			} else {
+				ko.Spec.AllocatedStorage = nil
+			}
 		} else {
+			// Ensure spec field is nil for Aurora if the API returns something
 			ko.Spec.AllocatedStorage = nil
 		}
 		if elem.AssociatedRoles != nil {
@@ -1911,10 +1918,17 @@ func (rm *resourceManager) setResourceFromRestoreDBClusterFromSnapshotOutput(
 	} else {
 		r.ko.Status.ActivityStreamStatus = nil
 	}
-	if resp.DBCluster.AllocatedStorage != nil {
-		allocatedStorageCopy := int64(*resp.DBCluster.AllocatedStorage)
-		r.ko.Spec.AllocatedStorage = &allocatedStorageCopy
+	// Only copy AllocatedStorage to spec if it's NOT an Aurora engine,
+	// as it's not a user-configurable parameter for Aurora.
+	if !isAuroraEngine(r.ko.Spec.Engine) {
+		if resp.DBCluster.AllocatedStorage != nil {
+			allocatedStorageCopy := int64(*resp.DBCluster.AllocatedStorage)
+			r.ko.Spec.AllocatedStorage = &allocatedStorageCopy
+		} else {
+			r.ko.Spec.AllocatedStorage = nil
+		}
 	} else {
+		// Ensure spec field is nil for Aurora if the API returns something
 		r.ko.Spec.AllocatedStorage = nil
 	}
 	if resp.DBCluster.AssociatedRoles != nil {

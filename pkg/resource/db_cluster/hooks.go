@@ -17,6 +17,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	svcapitypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 	"github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
@@ -74,6 +75,16 @@ const (
 	StatusArchiving                         = "archiving"
 	StatusArchived                          = "archived"
 )
+
+// isAuroraEngine returns true if the supplied engine string indicates an Aurora engine.
+func isAuroraEngine(engine *string) bool {
+	if engine == nil {
+		return false
+	}
+	// Check for standard Aurora engine prefixes
+	engineLower := strings.ToLower(*engine)
+	return strings.HasPrefix(engineLower, "aurora")
+}
 
 // TerminalStatuses are the status strings that are terminal states for a
 // DB cluster.

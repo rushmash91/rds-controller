@@ -118,9 +118,16 @@ func (rm *resourceManager) customUpdate(
 	} else {
 		ko.Status.ActivityStreamStatus = nil
 	}
-	if resp.DBCluster.AllocatedStorage != nil {
-		ko.Spec.AllocatedStorage = aws.Int64(int64(*resp.DBCluster.AllocatedStorage))
+	// Only copy AllocatedStorage to spec if it's NOT an Aurora engine,
+	// as it's not a user-configurable parameter for Aurora.
+	if !isAuroraEngine(ko.Spec.Engine) {
+		if resp.DBCluster.AllocatedStorage != nil {
+			ko.Spec.AllocatedStorage = aws.Int64(int64(*resp.DBCluster.AllocatedStorage))
+		} else {
+			ko.Spec.AllocatedStorage = nil
+		}
 	} else {
+		// Ensure spec field is nil for Aurora if the API returns something
 		ko.Spec.AllocatedStorage = nil
 	}
 	if resp.DBCluster.AssociatedRoles != nil {
